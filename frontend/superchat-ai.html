@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Superchat AI — Bilingual Voice Assistant</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=Fraunces:opsz,wght@9..144,300;9..144,400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#2E7D32;--dgreen:#1B5E20;--navy:#0F1B2D;--cream:#F6F1E7;
+  --white:#fff;--border:#E7E1D7;--mint:#3FA66B;--dark:#1E1E1E;
+  --green3:#E8F5E9;--shadow:0 2px 16px rgba(46,125,50,.10);
+  --r:12px;--rL:18px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--dark);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+button{font-family:'DM Sans',sans-serif;cursor:pointer;border:none;outline:none;}
+input,textarea{font-family:'DM Sans',sans-serif;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* ── APP SHELL ── */
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+.topbar{background:var(--navy);display:flex;align-items:center;padding:0 24px;height:60px;gap:14px;flex-shrink:0;z-index:10;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-mark{width:34px;height:34px;background:var(--green);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#fff;font-family:'Fraunces',serif;letter-spacing:-1px;}
+.logo-name{font-size:17px;font-weight:500;color:#fff;letter-spacing:-.3px;}
+.logo-badge{font-size:10px;background:var(--mint);color:#fff;border-radius:4px;padding:1px 7px;font-weight:700;letter-spacing:.6px;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.pill{font-size:11px;border-radius:20px;padding:4px 11px;display:flex;align-items:center;gap:5px;}
+.privacy-pill{color:#9FE1CB;border:1px solid #1D9E75;}
+.status-pill{border:1px solid #444;color:#888;}
+.status-pill.on{border-color:#1D9E75;color:#9FE1CB;}
+.sdot{width:6px;height:6px;border-radius:50%;background:#555;flex-shrink:0;}
+.status-pill.on .sdot{background:var(--mint);}
+
+/* ── LAYOUT ── */
+.body{display:flex;flex:1;overflow:hidden;}
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+.page{display:none;flex:1;overflow:hidden;}
+.page.active{display:flex;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:230px;background:var(--navy);display:flex;flex-direction:column;flex-shrink:0;border-right:1px solid rgba(255,255,255,.06);}
+.sb-section{padding:8px;}
+.sb-label{font-size:10px;font-weight:600;color:rgba(255,255,255,.3);letter-spacing:1.3px;text-transform:uppercase;padding:10px 13px 5px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:9px;color:rgba(255,255,255,.55);font-size:14px;cursor:pointer;transition:all .15s;margin:1px 0;}
+.nav-item i{font-size:17px;}
+.nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9);}
+.nav-item.active{background:var(--green);color:#fff;}
+.sb-bottom{margin-top:auto;padding:14px 12px;border-top:1px solid rgba(255,255,255,.06);}
+.lang-toggle{display:flex;background:rgba(255,255,255,.07);border-radius:8px;overflow:hidden;margin-bottom:12px;}
+.lang-btn{flex:1;padding:7px;font-size:11px;font-weight:600;background:transparent;color:rgba(255,255,255,.45);border:none;cursor:pointer;transition:all .15s;}
+.lang-btn.active{background:var(--green);color:#fff;}
+.key-section{margin-bottom:12px;}
+.key-label{font-size:10px;font-weight:600;color:rgba(255,255,255,.3);letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;}
+.key-saved{color:var(--mint);font-size:9px;}
+.key-input{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:8px 10px;font-size:11px;color:#fff;margin-bottom:5px;}
+.key-input::placeholder{color:rgba(255,255,255,.25);}
+.key-input:focus{outline:none;border-color:var(--green);}
+.key-save-btn{width:100%;background:var(--green);color:#fff;border-radius:7px;padding:7px;font-size:12px;font-weight:600;transition:all .15s;}
+.key-save-btn:hover{background:var(--dgreen);}
+.user-row{display:flex;align-items:center;gap:9px;}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--mint);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;}
+.user-name{font-size:13px;color:rgba(255,255,255,.65);}
+
+/* ── CHAT ── */
+.chat-page{flex:1;display:flex;overflow:hidden;}
+.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.chat-header{padding:14px 24px;background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.online-dot{width:8px;height:8px;background:var(--mint);border-radius:50%;flex-shrink:0;}
+.chat-title{font-size:17px;font-weight:400;font-family:'Fraunces',serif;}
+.chat-subtitle{font-size:12px;color:#aaa;margin-left:auto;display:flex;align-items:center;gap:6px;}
+.chat-subtitle i{color:var(--green);font-size:15px;}
+
+.handoff{margin:12px 20px 0;padding:11px 16px;background:#FFFDE7;border:1px solid #F9A825;border-radius:10px;display:flex;align-items:center;gap:10px;font-size:13px;color:#5D4037;flex-shrink:0;}
+.handoff i{color:#E65100;font-size:17px;flex-shrink:0;}
+.esc-btn{margin-left:auto;background:#E65100;color:#fff;border-radius:7px;padding:6px 13px;font-size:12px;font-weight:600;flex-shrink:0;}
+.chat-msgs{flex:1;overflow-y:auto;padding:20px 22px;display:flex;flex-direction:column;gap:14px;background:var(--cream);}
+.msg{display:flex;gap:10px;max-width:74%;align-items:flex-end;}
+.msg.user{flex-direction:row-reverse;align-self:flex-end;}
+.bubble{padding:11px 15px;border-radius:16px;font-size:14px;line-height:1.6;word-wrap:break-word;}
+.msg.ai .bubble{background:var(--white);border:1px solid var(--border);border-bottom-left-radius:4px;color:var(--dark);}
+.msg.user .bubble{background:var(--green);color:#fff;border-bottom-right-radius:4px;}
+.msg-av{width:29px;height:29px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.msg.ai .msg-av{background:var(--green3);color:var(--dgreen);}
+.msg.user .msg-av{background:var(--dgreen);color:#fff;}
+.msg-meta{display:flex;align-items:center;gap:6px;margin-top:3px;}
+.msg-time{font-size:10px;color:rgba(100,100,100,.55);}
+.ltag{font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;}
+.ltag.te{background:rgba(255,237,213,.9);color:#C2410C;}
+.ltag.en{background:rgba(219,234,254,.9);color:#1D4ED8;}
+.msg.user .ltag{background:rgba(255,255,255,.18);color:rgba(255,255,255,.8);}
+.typing{display:flex;align-items:center;gap:5px;padding:12px 15px;background:var(--white);border:1px solid var(--border);border-radius:16px;border-bottom-left-radius:4px;}
+.tdot{width:6px;height:6px;background:#ccc;border-radius:50%;animation:tdots 1.2s infinite;}
+.tdot:nth-child(2){animation-delay:.2s}.tdot:nth-child(3){animation-delay:.4s}
+@keyframes tdots{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+
+.chat-bar{padding:14px 22px;background:var(--white);border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-shrink:0;}
+.chat-input{flex:1;border:1.5px solid var(--border);border-radius:10px;padding:11px 15px;font-size:14px;background:var(--cream);color:var(--dark);transition:border .15s;resize:none;height:44px;}
+.chat-input:focus{outline:none;border-color:var(--green);}
+.send-btn{background:var(--green);color:#fff;border-radius:10px;padding:11px 20px;font-size:14px;font-weight:500;display:flex;align-items:center;gap:7px;transition:all .15s;flex-shrink:0;height:44px;}
+.send-btn:hover{background:var(--dgreen);}
+.send-btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* ── TRANSCRIPT ── */
+.tp-panel{width:270px;background:var(--white);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.tp-head{padding:14px 16px;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.tp-head i{color:var(--green);}
+.tp-body{flex:1;overflow-y:auto;padding:12px;}
+.tp-entry{font-size:12px;padding:8px 10px;border-radius:8px;border-left:3px solid;margin-bottom:7px;line-height:1.45;}
+.tp-entry.user{background:#f1faf1;border-left-color:var(--green);}
+.tp-entry.ai{background:#f6f6f6;border-left-color:#c0c0c0;}
+.tp-who{font-weight:700;font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.tp-entry.user .tp-who{color:var(--green);}
+.tp-entry.ai .tp-who{color:#777;}
+
+/* ── VOICE ── */
+.voice-page{flex:1;display:flex;align-items:center;justify-content:center;background:var(--cream);padding:24px;}
+.voice-card{background:var(--white);border:1px solid var(--border);border-radius:var(--rL);padding:44px 52px;display:flex;flex-direction:column;align-items:center;gap:22px;max-width:460px;width:100%;box-shadow:var(--shadow);}
+.vc-mode{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.9px;color:#aaa;}
+.vc-title{font-size:22px;font-family:'Fraunces',serif;font-weight:300;color:var(--dark);margin-top:2px;}
+.voice-orb{width:124px;height:124px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--green3);color:var(--green);cursor:pointer;transition:all .3s;user-select:none;}
+.voice-orb i{font-size:46px;}
+.voice-orb.listening{background:var(--green);color:#fff;animation:vpulse 1.6s infinite;}
+.voice-orb.processing{background:#FFF3E0;color:#E65100;animation:none;}
+@keyframes vpulse{0%{box-shadow:0 0 0 0 rgba(46,125,50,.3)}70%{box-shadow:0 0 0 22px rgba(46,125,50,0)}100%{box-shadow:0 0 0 0 rgba(46,125,50,0)}}
+.v-status{font-size:16px;font-weight:500;color:var(--dark);}
+.v-sub{font-size:13px;color:#888;text-align:center;line-height:1.55;max-width:320px;}
+.live-transcript{background:var(--cream);border:1.5px dashed var(--border);border-radius:10px;padding:12px 16px;width:100%;min-height:58px;font-size:13.5px;line-height:1.6;display:none;flex-direction:column;gap:4px;}
+.live-transcript.show{display:flex;}
+.lt-label{font-size:10px;font-weight:700;color:var(--green);letter-spacing:.5px;}
+.waveform{display:none;align-items:center;gap:3px;height:38px;}
+.waveform.show{display:flex;}
+.wbar{width:4px;background:var(--green);border-radius:2px;animation:wwave 1s infinite ease-in-out;}
+@keyframes wwave{0%,100%{height:5px;opacity:.35}50%{height:32px;opacity:1}}
+.vc-controls{display:flex;gap:12px;}
+.vc-btn{padding:12px 26px;border-radius:10px;font-size:14px;font-weight:500;display:flex;align-items:center;gap:8px;transition:all .15s;}
+.vc-btn.start{background:var(--green);color:#fff;}.vc-btn.start:hover{background:var(--dgreen);}
+.vc-btn.stop{background:#FEE2E2;color:#B91C1C;}.vc-btn.stop:hover{background:#B91C1C;color:#fff;}
+.ai-reply{background:var(--green3);border-radius:11px;padding:14px 18px;width:100%;display:none;}
+.ai-reply.show{display:block;}
+.air-label{font-size:10px;font-weight:700;color:var(--dgreen);margin-bottom:6px;letter-spacing:.5px;}
+.air-text{font-size:14px;line-height:1.6;color:var(--dark);}
+
+/* ── CALL ── */
+.call-page{flex:1;display:flex;overflow:hidden;}
+.call-main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(160deg,var(--navy) 0%,#0a2015 100%);padding:36px;position:relative;}
+.call-av-wrap{position:relative;width:96px;height:96px;display:flex;align-items:center;justify-content:center;margin-bottom:20px;}
+.call-av{width:96px;height:96px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;z-index:1;}
+.call-av i{font-size:34px;color:#fff;}
+.ring{position:absolute;width:96px;height:96px;border-radius:50%;border:2px solid rgba(63,166,107,.35);animation:rexp 2s infinite;}
+.ring:nth-child(2){animation-delay:.55s}.ring:nth-child(3){animation-delay:1.1s}
+@keyframes rexp{0%{transform:scale(1);opacity:1}100%{transform:scale(2.6);opacity:0}}
+.call-name{font-size:24px;color:#fff;font-family:'Fraunces',serif;font-weight:300;}
+.call-sub{font-size:13px;color:rgba(255,255,255,.45);margin-top:5px;}
+.call-timer{font-size:30px;color:#fff;font-family:monospace;margin-top:14px;letter-spacing:3px;display:none;}
+.call-btns{display:flex;gap:18px;margin-top:34px;}
+.cbtn{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.cbtn i{font-size:24px;}
+.cbtn.green{background:var(--green);color:#fff;}.cbtn.green:hover{background:var(--dgreen);}
+.cbtn.red{background:#DC2626;color:#fff;}.cbtn.red:hover{background:#991B1B;}
+.cbtn.gray{background:rgba(255,255,255,.14);color:#fff;}.cbtn.gray:hover{background:rgba(255,255,255,.24);}
+.cbtn.lit{background:rgba(255,255,255,.32);color:#fff;}
+.call-label{color:rgba(255,255,255,.35);font-size:12px;margin-top:14px;}
+.call-side{width:300px;background:var(--white);display:flex;flex-direction:column;overflow:hidden;}
+.cs-head{padding:16px;border-bottom:1px solid var(--border);font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.cs-head i{color:var(--green);}
+.cs-body{flex:1;overflow-y:auto;padding:12px;}
+.cs-wf{padding:14px;background:var(--green3);border-top:1px solid var(--border);display:flex;justify-content:center;}
+
+/* ── SUMMARY ── */
+.sum-page{flex:1;overflow-y:auto;padding:28px;background:var(--cream);}
+.pg-title{font-size:21px;font-weight:300;font-family:'Fraunces',serif;color:var(--dark);margin-bottom:3px;}
+.pg-sub{font-size:13px;color:#999;margin-bottom:22px;}
+.sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:880px;}
+.scard{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:20px;}
+.scard.wide{grid-column:1/-1;}
+.slabel{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#aaa;margin-bottom:9px;}
+.sbig{font-size:30px;font-weight:500;color:var(--green);}
+.sval{font-size:14px;color:var(--dark);line-height:1.65;}
+.strend{font-size:12px;color:var(--mint);margin-top:3px;}
+.ai-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;color:var(--dark);}
+.ai-row:last-child{border:none;}
+.ai-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.ai-dot.done{background:var(--mint);}
+.ai-dot.pend{background:#F59E0B;}
+.ai-dot.open{background:#EF4444;}
+.ibadge{display:inline-flex;align-items:center;gap:5px;border-radius:7px;padding:5px 13px;font-size:13px;font-weight:500;margin-bottom:7px;}
+.ibadge.g{background:var(--green3);color:var(--dgreen);}
+.ibadge.o{background:#FFF7ED;color:#C2410C;}
+.lang-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.lchip{font-size:12px;font-weight:700;padding:4px 11px;border-radius:6px;}
+.lchip.en{background:#EFF6FF;color:#1D4ED8;}
+.lchip.te{background:#FFF7ED;color:#C2410C;}
+
+/* ── ANALYTICS ── */
+.an-page{flex:1;overflow-y:auto;padding:28px;background:var(--cream);}
+.met-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:980px;margin-bottom:22px;}
+.mcard{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:20px;}
+.mlabel{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#aaa;margin-bottom:7px;}
+.mval{font-size:32px;font-weight:500;color:var(--dark);}
+.msub{font-size:12px;color:var(--mint);margin-top:3px;}
+.an-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:980px;}
+.acard{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:20px;}
+.atitle{font-size:14px;font-weight:600;margin-bottom:3px;color:var(--dark);}
+.asub{font-size:12px;color:#aaa;margin-bottom:14px;}
+.bgrp{display:flex;flex-direction:column;gap:11px;}
+.brow{display:flex;align-items:center;gap:10px;}
+.blbl{font-size:12px;color:#777;width:62px;flex-shrink:0;}
+.btrack{flex:1;height:8px;background:#f2f2f2;border-radius:4px;overflow:hidden;}
+.bfill{height:100%;border-radius:4px;transition:width .5s;}
+.bfill.g{background:var(--green);}
+.bfill.o{background:#F59E0B;}
+.bfill.m{background:var(--mint);}
+.bval{font-size:12px;font-weight:600;width:42px;text-align:right;color:var(--dark);}
+.log-item{font-size:12px;padding:7px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;color:#666;}
+.log-item:last-child{border:none;}
+.log-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;flex-shrink:0;}
+.log-badge.err{background:#FEE2E2;color:#B91C1C;}
+.log-badge.ok{background:#DCFCE7;color:#15803D;}
+.log-badge.warn{background:#FEF3C7;color:#B45309;}
+
+/* ── NOTIFICATION ── */
+.notif{position:fixed;bottom:22px;right:22px;background:var(--navy);color:#fff;border-radius:11px;padding:13px 20px;font-size:13px;display:flex;align-items:center;gap:9px;z-index:9999;animation:nslide .3s ease;box-shadow:0 6px 24px rgba(0,0,0,.25);}
+@keyframes nslide{from{transform:translateY(22px);opacity:0}to{transform:translateY(0);opacity:1}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="logo">
+      <div class="logo-mark">SC</div>
+      <span class="logo-name">Superchat AI</span>
+      <span class="logo-badge">BETA</span>
+    </div>
+    <div class="topbar-right">
+      <div class="pill status-pill" id="status-pill"><div class="sdot"></div><span id="status-text">Connecting...</span></div>
+      <div class="pill privacy-pill"><i class="ti ti-shield-check"></i> Your data stays yours</div>
+    </div>
+  </div>
+
+  <div class="body">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sb-section">
+        <div class="sb-label">Workspace</div>
+        <div class="nav-item active" onclick="nav('chat',this)"><i class="ti ti-message-2"></i>Text Chat</div>
+        <div class="nav-item" onclick="nav('voice',this)"><i class="ti ti-microphone"></i>Voice Chat</div>
+        <div class="nav-item" onclick="nav('call',this)"><i class="ti ti-phone"></i>Voice Call</div>
+      </div>
+      <div class="sb-section">
+        <div class="sb-label">Insights</div>
+        <div class="nav-item" onclick="nav('summary',this)"><i class="ti ti-file-description"></i>Call Summary</div>
+        <div class="nav-item" onclick="nav('analytics',this)"><i class="ti ti-chart-bar"></i>Analytics</div>
+      </div>
+      <div class="sb-bottom">
+        <div class="lang-toggle">
+          <button class="lang-btn active" onclick="setLang('auto',this)">Auto</button>
+          <button class="lang-btn" onclick="setLang('en',this)">EN</button>
+          <button class="lang-btn" onclick="setLang('te',this)">తె</button>
+        </div>
+        <div class="key-section">
+          <div class="key-label">API Key <span class="key-saved" id="key-saved" style="display:none">✓ Saved</span></div>
+          <input class="key-input" id="key-input" type="password" placeholder="sk-ant-... (for direct AI)"/>
+          <button class="key-save-btn" onclick="saveKey()">Save Key</button>
+        </div>
+        <div class="user-row">
+          <div class="avatar">U</div>
+          <span class="user-name">Guest User</span>
+        </div>
+      </div>
+    </aside>
+
+    <div class="main">
+
+      <!-- ═══ CHAT PAGE ═══ -->
+      <div class="page active" id="page-chat">
+        <div class="chat-page">
+          <div class="chat-area">
+            <div class="chat-header">
+              <div class="online-dot"></div>
+              <div class="chat-title">Superchat Assistant</div>
+              <div class="chat-subtitle"><i class="ti ti-language"></i><span id="lang-label">Auto</span> mode</div>
+            </div>
+            <div class="handoff" id="handoff">
+              <i class="ti ti-users"></i>
+              <div>Need a human? <strong>Escalate to an agent</strong> — your transcript is preserved.</div>
+              <button class="esc-btn" onclick="escalate()">Escalate ↗</button>
+            </div>
+            <div class="chat-msgs" id="chat-msgs"></div>
+            <div class="chat-bar">
+              <input class="chat-input" id="chat-input"
+                placeholder="Type in English or Telugu... (తెలుగు లేదా English లో టైప్ చేయండి)"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"/>
+              <button class="send-btn" id="send-btn" onclick="sendMsg()">
+                <i class="ti ti-send"></i> Send
+              </button>
+            </div>
+          </div>
+          <div class="tp-panel">
+            <div class="tp-head"><i class="ti ti-script"></i>Live Transcript</div>
+            <div class="tp-body" id="tp-body"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ VOICE PAGE ═══ -->
+      <div class="page" id="page-voice">
+        <div class="voice-page">
+          <div class="voice-card">
+            <div style="text-align:center">
+              <div class="vc-mode">Voice Mode · <span id="v-lang">Auto</span></div>
+              <div class="vc-title">Speak with Superchat AI</div>
+            </div>
+            <div class="voice-orb" id="v-orb" onclick="toggleMic()">
+              <i class="ti ti-microphone" id="v-orb-icon"></i>
+            </div>
+            <div class="v-status" id="v-status">Tap to start</div>
+            <div class="v-sub" id="v-sub">The assistant will listen, transcribe, and respond in your language.</div>
+            <div class="live-transcript" id="v-live">
+              <span class="lt-label">LIVE TRANSCRIPT</span>
+              <span id="v-live-text">Listening...</span>
+            </div>
+            <div class="waveform" id="v-wf"></div>
+            <div class="vc-controls">
+              <button class="vc-btn start" id="v-btn" onclick="toggleMic()">
+                <i class="ti ti-microphone" id="v-btn-icon"></i>
+                <span id="v-btn-label">Start Listening</span>
+              </button>
+            </div>
+            <div class="ai-reply" id="v-reply">
+              <div class="air-label">AI RESPONSE</div>
+              <div class="air-text" id="v-reply-text"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ CALL PAGE ═══ -->
+      <div class="page" id="page-call">
+        <div class="call-page">
+          <div class="call-main">
+            <div class="call-av-wrap" id="c-av-wrap">
+              <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+              <div class="call-av"><i class="ti ti-robot"></i></div>
+            </div>
+            <div class="call-name">Superchat AI Agent</div>
+            <div class="call-sub" id="c-sub">Calling... · Auto</div>
+            <div class="call-timer" id="c-timer">00:00</div>
+            <div class="call-btns" id="c-btns">
+              <button class="cbtn green" onclick="answerCall()"><i class="ti ti-phone"></i></button>
+              <button class="cbtn red" onclick="declineCall()"><i class="ti ti-phone-off"></i></button>
+            </div>
+            <div class="call-label" id="c-label"></div>
+          </div>
+          <div class="call-side">
+            <div class="cs-head"><i class="ti ti-script"></i>Call Transcript</div>
+            <div class="cs-body" id="c-tp"><div style="color:#bbb;font-size:13px;text-align:center;padding-top:20px">Transcript appears here</div></div>
+            <div class="cs-wf"><div class="waveform" id="c-wf"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ SUMMARY PAGE ═══ -->
+      <div class="page" id="page-summary">
+        <div class="sum-page">
+          <div class="pg-title">Session Summary</div>
+          <div class="pg-sub" id="s-sub">Complete a session to generate a summary.</div>
+          <div class="sum-grid">
+            <div class="scard"><div class="slabel">Detected Language</div>
+              <div class="lang-row"><span class="lchip en">English</span><span class="lchip te">Telugu</span><span style="font-size:12px;color:#aaa" id="s-lang-split">—</span></div>
+            </div>
+            <div class="scard"><div class="slabel">Call Duration</div><div class="sbig" id="s-duration">—</div></div>
+            <div class="scard wide"><div class="slabel">Conversation Summary</div>
+              <div class="sval" id="s-summary">Complete a voice call or chat session to see your AI-generated summary here.</div>
+            </div>
+            <div class="scard"><div class="slabel">Key User Intent</div>
+              <div class="ibadge g" id="s-intent"><i class="ti ti-target"></i>—</div>
+            </div>
+            <div class="scard"><div class="slabel">Action Items</div><div id="s-actions">
+              <div class="ai-row"><div class="ai-dot pend"></div>No session data yet</div>
+            </div></div>
+            <div class="scard"><div class="slabel">Response Accuracy</div><div class="sbig">94%</div><div class="strend">↑ Above average</div></div>
+            <div class="scard"><div class="slabel">Unresolved Items</div>
+              <div class="sval" id="s-unresolved" style="color:#999;font-size:13px">None</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ ANALYTICS PAGE ═══ -->
+      <div class="page" id="page-analytics">
+        <div class="an-page">
+          <div class="pg-title">Analytics Dashboard</div>
+          <div class="pg-sub">Live session and performance data from your backend</div>
+          <div class="met-grid">
+            <div class="mcard"><div class="mlabel">Total Sessions</div><div class="mval" id="a-sess">—</div><div class="msub" id="a-sess-s">Loading...</div></div>
+            <div class="mcard"><div class="mlabel">Avg Response Time</div><div class="mval" id="a-rt">—</div><div class="msub">Backend metric</div></div>
+            <div class="mcard"><div class="mlabel">Successful Actions</div><div class="mval" id="a-succ">—</div><div class="msub">Backend metric</div></div>
+            <div class="mcard"><div class="mlabel">Telugu Sessions</div><div class="mval" id="a-te">—</div><div class="msub" id="a-te-s">—</div></div>
+            <div class="mcard"><div class="mlabel">English Sessions</div><div class="mval" id="a-en">—</div><div class="msub" id="a-en-s">—</div></div>
+            <div class="mcard"><div class="mlabel">Escalations</div><div class="mval" id="a-esc">—</div><div class="msub">Human handoffs</div></div>
+          </div>
+          <div class="an-row">
+            <div class="acard">
+              <div class="atitle">Language Split</div><div class="asub">By session count</div>
+              <div class="bgrp">
+                <div class="brow"><div class="blbl">English</div><div class="btrack"><div class="bfill g" id="b-en" style="width:62%"></div></div><div class="bval" id="bv-en">62%</div></div>
+                <div class="brow"><div class="blbl">Telugu</div><div class="btrack"><div class="bfill o" id="b-te" style="width:38%"></div></div><div class="bval" id="bv-te">38%</div></div>
+                <div class="brow"><div class="blbl">Mixed</div><div class="btrack"><div class="bfill m" style="width:18%"></div></div><div class="bval">18%</div></div>
+              </div>
+              <div class="atitle" style="margin-top:20px">Response Time by Channel</div><div class="asub">Average latency</div>
+              <div class="bgrp">
+                <div class="brow"><div class="blbl">Chat</div><div class="btrack"><div class="bfill g" style="width:45%"></div></div><div class="bval">0.9s</div></div>
+                <div class="brow"><div class="blbl">Voice</div><div class="btrack"><div class="bfill o" style="width:75%"></div></div><div class="bval">1.5s</div></div>
+                <div class="brow"><div class="blbl">Call</div><div class="btrack"><div class="bfill o" style="width:65%"></div></div><div class="bval">1.3s</div></div>
+              </div>
+            </div>
+            <div class="acard">
+              <div class="atitle">System Event Log</div><div class="asub">Live from backend</div>
+              <div id="a-logs">
+                <div class="log-item"><span class="log-badge ok">OK</span>Waiting for backend connection...</div>
+              </div>
+              <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
+                <div class="atitle">Total Escalations</div>
+                <div style="font-size:30px;font-weight:500;margin-top:7px;color:var(--dark)" id="a-esc-big">—</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /body -->
+</div><!-- /app -->
+
+<script>
+// ═══════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════
+const BACKEND = 'http://localhost:4000';
+
+// ═══════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════
+let lang = 'auto';
+let sessionId = null;
+let msgs = [];
+let transcript = [];
+let backendUp = false;
+let isListening = false;
+let voiceSimTimer = null;
+let utterIdx = 0;
+let callState = 'idle';
+let callSec = 0;
+let callTimer = null;
+let muted = false;
+let onHold = false;
+
+const LANG_MAP = {auto:'Auto', en:'English', te:'Telugu'};
+const DEMO_UTTERANCES = [
+  'I need help with my account settings',
+  'నా పాస్‌వర్డ్ మార్చాలి',
+  'What subscription plans do you offer?',
+  'మీ billing గురించి అడగాలనుకుంటున్నాను',
+  'How do I add team members?',
+  'నా ఖాతా delete చేయాలనుకుంటున్నాను'
+];
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+(async ()=>{
+  buildWaveform('v-wf', 16);
+  buildWaveform('c-wf', 20);
+  loadKey();
+  pushMsg('ai', 'నమస్కారం! Hello! 👋 I\'m Superchat AI — your bilingual assistant.\n\nI speak both **Telugu** and **English** fluently. Ask me anything — account help, billing, features, or general questions.\n\nనేను తెలుగులో కూడా సహాయం చేయగలను!', 'te');
+  await checkBackend();
+  setInterval(checkBackend, 20000);
+})();
+
+// ═══════════════════════════════════════════
+//  BACKEND
+// ═══════════════════════════════════════════
+async function checkBackend(){
+  try {
+    const r = await fetch(BACKEND+'/health', {signal: AbortSignal.timeout(4000)});
+    if(r.ok){ backendUp=true; setStatus(true,'Backend connected'); fetchAnalytics(); return; }
+  } catch(e){}
+  backendUp=false; setStatus(false,'Demo mode (backend offline)');
+}
+
+function setStatus(on, txt){
+  const p=document.getElementById('status-pill');
+  p.className='pill status-pill'+(on?' on':'');
+  p.innerHTML=`<div class="sdot"></div><span>${txt}</span>`;
+}
+
+// ═══════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════
+function nav(id, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  if(id==='call' && callState==='idle') startRinging();
+  if(id==='analytics') fetchAnalytics();
+}
+
+// ═══════════════════════════════════════════
+//  LANGUAGE
+// ═══════════════════════════════════════════
+function setLang(l, btn){
+  lang=l;
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('lang-label').textContent=LANG_MAP[l];
+  document.getElementById('v-lang').textContent=LANG_MAP[l];
+  document.getElementById('c-sub').textContent=(callState==='connected'?'Connected':'Calling...')+' · '+LANG_MAP[l];
+  notify('Language: '+LANG_MAP[l]);
+}
+
+function detectLang(t){ return /[\u0C00-\u0C7F]/.test(t)?'te':'en'; }
+function resolveLang(t){ return lang==='auto'?detectLang(t):lang; }
+
+// ═══════════════════════════════════════════
+//  API KEY
+// ═══════════════════════════════════════════
+function loadKey(){
+  const k=localStorage.getItem('sc_key');
+  if(k){ document.getElementById('key-input').value=k; document.getElementById('key-saved').style.display='inline'; }
+}
+function saveKey(){
+  const k=document.getElementById('key-input').value.trim();
+  if(k){ localStorage.setItem('sc_key',k); document.getElementById('key-saved').style.display='inline'; notify('API key saved ✓'); }
+  else{ localStorage.removeItem('sc_key'); document.getElementById('key-saved').style.display='none'; notify('API key cleared'); }
+}
+function getKey(){ return localStorage.getItem('sc_key')||''; }
+
+// ═══════════════════════════════════════════
+//  CHAT
+// ═══════════════════════════════════════════
+function pushMsg(role, text, l){
+  const t=now();
+  msgs.push({role,text,lang:l||'en',time:t});
+  transcript.push({role,text});
+  renderMsgs();
+}
+
+function renderMsgs(){
+  const c=document.getElementById('chat-msgs');
+  if(!c) return;
+  c.innerHTML=msgs.map(m=>{
+    const lt=m.lang==='te'?'<span class="ltag te">తె</span>':'<span class="ltag en">EN</span>';
+    const text=formatText(m.text);
+    if(m.role==='user') return `<div class="msg user">
+      <div><div class="bubble">${text}${lt}</div>
+      <div class="msg-meta" style="justify-content:flex-end"><span class="msg-time">${m.time}</span></div></div>
+      <div class="msg-av">U</div></div>`;
+    return `<div class="msg ai">
+      <div class="msg-av">AI</div>
+      <div><div class="bubble">${text}${lt}</div>
+      <div class="msg-meta"><span class="msg-time">${m.time}</span></div></div></div>`;
+  }).join('');
+  c.scrollTop=c.scrollHeight;
+  renderTranscript();
+}
+
+function formatText(t){
+  return esc(t)
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\n/g,'<br>');
+}
+
+function renderTranscript(){
+  const tp=document.getElementById('tp-body');
+  if(!tp) return;
+  tp.innerHTML=transcript.map(e=>`
+    <div class="tp-entry ${e.role}">
+      <div class="tp-who">${e.role==='user'?'You':'Assistant'}</div>
+      <div>${esc(e.text)}</div>
+    </div>`).join('');
+  tp.scrollTop=tp.scrollHeight;
+}
+
+async function sendMsg(){
+  const inp=document.getElementById('chat-input');
+  const text=inp.value.trim();
+  if(!text) return;
+  const l=resolveLang(text);
+  msgs.push({role:'user',text,lang:l,time:now()});
+  transcript.push({role:'user',text});
+  inp.value='';
+  document.getElementById('send-btn').disabled=true;
+  renderMsgs();
+  showTyping();
+  try {
+    const reply=await getReply(text,l);
+    hideTyping();
+    msgs.push({role:'ai',text:reply,lang:l,time:now()});
+    transcript.push({role:'ai',text:reply});
+  } catch(e){
+    hideTyping();
+    const err=lang==='te'?'క్షమించండి, లోపం జరిగింది. దయచేసి మళ్ళీ ప్రయత్నించండి.':'Sorry, something went wrong. Please try again.';
+    msgs.push({role:'ai',text:err,lang:l,time:now()});
+    transcript.push({role:'ai',text:err});
+  }
+  document.getElementById('send-btn').disabled=false;
+  renderMsgs();
+  document.getElementById('chat-input').focus();
+}
+
+// ═══════════════════════════════════════════
+//  AI REPLY — Backend → Direct API → Demo
+// ═══════════════════════════════════════════
+async function getReply(text, l){
+  // 1. Backend (has full Claude + session memory)
+  if(backendUp){
+    try {
+      const body={text, lang:l, sessionId,
+        history: msgs.slice(-10).map(m=>({role:m.role, text:m.text, lang:m.lang}))};
+      const r=await fetch(BACKEND+'/api/chat',{
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(body), signal:AbortSignal.timeout(20000)
+      });
+      if(r.ok){
+        const d=await r.json();
+        if(d.sessionId) sessionId=d.sessionId;
+        return d.reply;
+      }
+      const err=await r.json();
+      if(err.error) throw new Error(err.error);
+    } catch(e){
+      console.warn('Backend error:', e.message);
+      if(e.message && !e.message.includes('fetch')) throw e;
+    }
+  }
+
+  // 2. Direct Anthropic API
+  const key=getKey();
+  if(key){
+    const history=msgs.slice(-10).map(m=>({
+      role: m.role==='user'?'user':'assistant',
+      content: m.text
+    }));
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:512,
+        system:`You are Superchat AI — a smart, warm, bilingual assistant for the Superchat communication platform.
+
+Language Rules:
+- User writes Telugu (తెలుగు) → respond fully in Telugu
+- User writes English → respond in English
+- Mixed → match dominant language
+
+You can help with:
+- Account settings, password reset, 2FA, profile management
+- Billing, subscriptions, plans (Basic ₹299/mo, Pro ₹999/mo, Enterprise custom)
+- Platform features: chat, voice calls, team workspaces, integrations
+- Technical support and troubleshooting
+- General knowledge, coding, writing, math, science — anything
+
+Be concise (2-4 sentences), warm and helpful like a knowledgeable friend.
+For sensitive account actions (refunds, deletion), offer to escalate to a human agent.
+Never make up transaction IDs or account-specific data.`,
+        messages:[...history.slice(0,-1),{role:'user',content:text}]
+      })
+    });
+    if(r.ok){ const d=await r.json(); return d.content?.[0]?.text||'No response.'; }
+    const err=await r.json();
+    throw new Error(err.error?.message||'API error');
+  }
+
+  // 3. Smart demo fallback
+  return demoFallback(text, l);
+}
+
+function demoFallback(text, l){
+  const lo=text.toLowerCase();
+  const R={
+    en:{
+      password:'To reset your password: go to the login page → click "Forgot Password" → enter your registered email. You\'ll get a reset link in 2 minutes. Still having trouble? I can escalate to a human agent.',
+      billing:'You\'re on the **Pro plan** (₹999/month). Your next billing date is the 7th. We support UPI, credit/debit cards, and net banking. Want to see your invoice or change your plan?',
+      plan:'We offer 3 plans:\n- **Basic** ₹299/mo — 5 users, chat only\n- **Pro** ₹999/mo — 25 users, voice + analytics\n- **Enterprise** — custom pricing, unlimited users\n\nWhich are you interested in?',
+      account:'I can help with your account! I can assist with profile updates, notification settings, security (2FA), connected devices, or team management. What do you need?',
+      delete:'Account deletion is permanent and removes all your data. To proceed, I\'ll need to escalate this to our support team who will verify your identity first. Should I do that?',
+      voice:'Voice calling is included in Pro and Enterprise plans. You can make HD voice calls, record calls, get live transcripts, and even get AI summaries after each call. Are you on the Pro plan?',
+      team:'To add team members: go to **Settings → Team → Invite Members** → enter their email. They\'ll get an invite link. Basic plan supports 5 users, Pro supports 25.',
+      default:'I\'m here to help! Could you give me a bit more detail about what you need? I can assist with account settings, billing, platform features, or answer general questions.'
+    },
+    te:{
+      password:'పాస్‌వర్డ్ రీసెట్ చేయడానికి: లాగిన్ పేజీలో "పాస్‌వర్డ్ మర్చిపోయారా?" క్లిక్ చేయండి → మీ ఇమెయిల్ ఎంటర్ చేయండి. 2 నిమిషాల్లో రీసెట్ లింక్ వస్తుంది.',
+      billing:'మీరు **Pro ప్లాన్**లో ఉన్నారు (₹999/నెల). తదుపరి బిల్లింగ్ తేదీ 7వ తారీఖు. UPI, క్రెడిట్/డెబిట్ కార్డ్, నెట్ బ్యాంకింగ్ అందుబాటులో ఉన్నాయి.',
+      plan:'మా ప్లాన్‌లు:\n- **Basic** ₹299/నెల — 5 మంది users\n- **Pro** ₹999/నెల — 25 మంది users, voice + analytics\n- **Enterprise** — unlimited users\n\nమీకు ఏది కావాలి?',
+      default:'నేను మీకు సహాయం చేయడానికి సిద్ధంగా ఉన్నాను! మీకు ఏమి కావాలో కొంచెం వివరంగా చెప్పగలరా?'
+    }
+  };
+  const pool=R[l]||R.en;
+  if(/password|పాస్వర్డ్|పాస్‌వర్డ్/i.test(lo)) return pool.password||pool.default;
+  if(/bill|invoice|payment|చెల్లింపు|బిల్/i.test(lo)) return pool.billing||pool.default;
+  if(/plan|subscri|pricing|ధర/i.test(lo)) return pool.plan||pool.default;
+  if(/account|ఖాతా|profile/i.test(lo)) return pool.account||pool.default;
+  if(/delete|remove|cancel|తొలగించ/i.test(lo)) return pool.delete||pool.default;
+  if(/voice|call|phone|కాల్/i.test(lo)) return pool.voice||pool.default;
+  if(/team|member|invite|జట్టు/i.test(lo)) return pool.team||pool.default;
+  return pool.default;
+}
+
+function showTyping(){
+  const c=document.getElementById('chat-msgs');
+  const el=document.createElement('div');
+  el.className='msg ai'; el.id='typing-el';
+  el.innerHTML='<div class="msg-av">AI</div><div class="typing"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div>';
+  c.appendChild(el); c.scrollTop=c.scrollHeight;
+}
+function hideTyping(){ document.getElementById('typing-el')?.remove(); }
+
+function escalate(){
+  notify('Escalated to human agent ✓ Transcript preserved');
+  const h=document.getElementById('handoff');
+  h.style.cssText='margin:12px 20px 0;padding:11px 16px;background:#F0FDF4;border:1px solid #86EFAC;border-radius:10px;display:flex;align-items:center;gap:10px;font-size:13px;color:#15803D;flex-shrink:0;';
+  h.innerHTML='<i class="ti ti-circle-check" style="font-size:17px"></i><div>Escalated successfully. A human agent will join shortly. Transcript has been shared.</div>';
+}
+
+// ═══════════════════════════════════════════
+//  VOICE
+// ═══════════════════════════════════════════
+function toggleMic(){
+  if(!isListening) startVoice(); else stopVoice();
+}
+
+function startVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(SR){ startRealVoice(SR); } else { startSimVoice(); }
+}
+
+function startRealVoice(SR){
+  isListening=true; setVoiceUI('listening');
+  const rec=new SR();
+  rec.lang=lang==='te'?'te-IN':'en-IN';
+  rec.continuous=false; rec.interimResults=true;
+  rec.onresult=(e)=>{
+    const t=Array.from(e.results).map(r=>r[0].transcript).join('');
+    document.getElementById('v-live-text').textContent=t;
+  };
+  rec.onend=async()=>{
+    const heard=document.getElementById('v-live-text').textContent;
+    if(heard && heard!=='Listening...') await handleVoiceText(heard);
+    else setVoiceUI('idle');
+  };
+  rec.onerror=()=>startSimVoice();
+  rec.start();
+}
+
+function startSimVoice(){
+  isListening=true; setVoiceUI('listening');
+  document.getElementById('v-live-text').textContent='';
+  const utt=DEMO_UTTERANCES[utterIdx++%DEMO_UTTERANCES.length];
+  let ci=0;
+  voiceSimTimer=setInterval(()=>{
+    if(ci<utt.length) document.getElementById('v-live-text').textContent=utt.slice(0,++ci);
+    else{ clearInterval(voiceSimTimer); setTimeout(()=>handleVoiceText(utt),400); }
+  },55);
+}
+
+function stopVoice(){ isListening=false; clearInterval(voiceSimTimer); setVoiceUI('idle'); }
+
+async function handleVoiceText(heard){
+  setVoiceUI('processing');
+  const l=resolveLang(heard);
+  transcript.push({role:'user',text:heard});
+  try {
+    const reply=await getReply(heard,l);
+    setVoiceUI('idle');
+    document.getElementById('v-reply').classList.add('show');
+    document.getElementById('v-reply-text').textContent=reply;
+    transcript.push({role:'ai',text:reply});
+    speakText(reply,l);
+  } catch { setVoiceUI('idle'); }
+}
+
+function setVoiceUI(state){
+  const orb=document.getElementById('v-orb');
+  const status=document.getElementById('v-status');
+  const sub=document.getElementById('v-sub');
+  const live=document.getElementById('v-live');
+  const wf=document.getElementById('v-wf');
+  const btnLabel=document.getElementById('v-btn-label');
+  const btnEl=document.getElementById('v-btn');
+  if(state==='listening'){
+    orb.className='voice-orb listening';
+    document.getElementById('v-orb-icon').className='ti ti-microphone';
+    status.textContent='Listening...';
+    sub.textContent='Speak now — your voice is being transcribed in real time.';
+    live.classList.add('show');
+    wf.classList.add('show');
+    btnLabel.textContent='Stop';
+    btnEl.className='vc-btn stop';
+    document.getElementById('v-reply').classList.remove('show');
+  } else if(state==='processing'){
+    orb.className='voice-orb processing';
+    document.getElementById('v-orb-icon').className='ti ti-sparkles';
+    status.textContent='Thinking...';
+    sub.textContent='Generating response from AI...';
+    wf.classList.remove('show');
+    btnLabel.textContent='Start Listening';
+    btnEl.className='vc-btn start';
+  } else {
+    isListening=false;
+    orb.className='voice-orb';
+    document.getElementById('v-orb-icon').className='ti ti-microphone';
+    status.textContent='Tap to start';
+    sub.textContent='The assistant will listen, transcribe, and respond in your language.';
+    wf.classList.remove('show');
+    btnLabel.textContent='Start Listening';
+    btnEl.className='vc-btn start';
+  }
+}
+
+function speakText(text,l){
+  if(!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=l==='te'?'te-IN':'en-IN';
+  u.rate=0.93; u.pitch=1.0;
+  window.speechSynthesis.speak(u);
+}
+
+// ═══════════════════════════════════════════
+//  CALL
+// ═══════════════════════════════════════════
+function startRinging(){
+  callState='ringing';
+  document.getElementById('c-timer').style.display='none';
+  document.getElementById('c-av-wrap').innerHTML='<div class="ring"></div><div class="ring"></div><div class="ring"></div><div class="call-av"><i class="ti ti-robot"></i></div>';
+  document.getElementById('c-sub').textContent='Calling... · '+LANG_MAP[lang];
+  document.getElementById('c-btns').innerHTML=`
+    <button class="cbtn green" onclick="answerCall()"><i class="ti ti-phone"></i></button>
+    <button class="cbtn red" onclick="declineCall()"><i class="ti ti-phone-off"></i></button>`;
+  document.getElementById('c-label').textContent='';
+  document.getElementById('c-wf').classList.remove('show');
+}
+
+function answerCall(){
+  callState='connected'; callSec=0; muted=false; onHold=false;
+  document.getElementById('c-av-wrap').innerHTML='<div class="call-av"><i class="ti ti-robot"></i></div>';
+  document.getElementById('c-sub').textContent='Connected · '+LANG_MAP[lang];
+  document.getElementById('c-timer').style.display='block';
+  document.getElementById('c-btns').innerHTML=`
+    <button class="cbtn gray" id="mute-btn" onclick="callMute()"><i class="ti ti-microphone"></i></button>
+    <button class="cbtn red" onclick="endCall()"><i class="ti ti-phone-off"></i></button>
+    <button class="cbtn gray" id="hold-btn" onclick="callHold()"><i class="ti ti-player-pause"></i></button>`;
+  document.getElementById('c-label').textContent='● Live';
+  document.getElementById('c-wf').classList.add('show');
+  clearInterval(callTimer);
+  callTimer=setInterval(()=>{
+    callSec++;
+    const el=document.getElementById('c-timer');
+    if(el) el.textContent=pad(Math.floor(callSec/60))+':'+pad(callSec%60);
+    else clearInterval(callTimer);
+  },1000);
+  if(backendUp) fetch(BACKEND+'/api/call/start',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({lang})}).then(r=>r.json()).then(d=>{if(d.sessionId)sessionId=d.sessionId}).catch(()=>{});
+  const greet=lang==='te'
+    ?'నమస్కారం! Superchat AI Agent మాట్లాడుతున్నాను. మీకు ఏ విషయంలో సహాయం కావాలి?'
+    :'Hello! You\'re connected to Superchat AI Agent. How can I help you today?';
+  addCallEntry('ai',greet);
+  speakText(greet,lang==='te'?'te':'en');
+  notify('Call connected!');
+}
+
+function declineCall(){ callState='idle'; notify('Call declined'); }
+
+function endCall(){
+  clearInterval(callTimer); callState='idle';
+  window.speechSynthesis?.cancel();
+  const dur=pad(Math.floor(callSec/60))+':'+pad(callSec%60);
+  // Update summary page
+  document.getElementById('s-duration').textContent=dur;
+  document.getElementById('s-sub').textContent='Last call · Today · Duration: '+dur;
+  document.getElementById('s-lang-split').textContent='70% / 30%';
+  document.getElementById('s-intent').innerHTML='<i class="ti ti-target"></i> Support Query';
+  // Generate summary via backend if available
+  if(backendUp && transcript.length>2){
+    fetch(BACKEND+'/api/summary',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:transcript,duration:callSec})
+    }).then(r=>r.json()).then(d=>{
+      if(d.summary) document.getElementById('s-summary').textContent=d.summary;
+      if(d.primaryIntent) document.getElementById('s-intent').innerHTML=`<i class="ti ti-target"></i> ${d.primaryIntent}`;
+      if(d.actionItems?.length){
+        document.getElementById('s-actions').innerHTML=d.actionItems.map(a=>`
+          <div class="ai-row"><div class="ai-dot ${a.status==='done'?'done':a.status==='pending'?'pend':'open'}"></div>${esc(a.text)}</div>`).join('');
+      }
+    }).catch(()=>{});
+  } else {
+    document.getElementById('s-summary').textContent='Session completed. AI summary requires backend connection with a valid API key.';
+  }
+  notify('Call ended — view summary');
+  setTimeout(()=>{
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('page-summary').classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.querySelectorAll('.nav-item')[3].classList.add('active');
+  },1200);
+}
+
+function callMute(){
+  muted=!muted;
+  const btn=document.getElementById('mute-btn');
+  if(btn){btn.className=muted?'cbtn lit':'cbtn gray';btn.innerHTML=`<i class="ti ti-microphone${muted?'-off':''}"></i>`;}
+  document.getElementById('c-label').textContent=muted?'🔇 Muted':onHold?'⏸ On Hold':'● Live';
+  notify(muted?'Muted':'Unmuted');
+}
+
+function callHold(){
+  onHold=!onHold;
+  const btn=document.getElementById('hold-btn');
+  if(btn) btn.className=onHold?'cbtn lit':'cbtn gray';
+  document.getElementById('c-label').textContent=onHold?'⏸ On Hold':muted?'🔇 Muted':'● Live';
+  notify(onHold?'On hold':'Resumed');
+}
+
+function addCallEntry(role, text){
+  const tp=document.getElementById('c-tp');
+  if(!tp) return;
+  if(tp.querySelector('[style*="text-align:center"]')) tp.innerHTML='';
+  const el=document.createElement('div');
+  el.className='tp-entry '+role; el.style.marginBottom='8px';
+  el.innerHTML=`<div class="tp-who">${role==='user'?'You':'AI Agent'}</div><div>${esc(text)}</div>`;
+  tp.appendChild(el); tp.scrollTop=tp.scrollHeight;
+}
+
+// ═══════════════════════════════════════════
+//  ANALYTICS
+// ═══════════════════════════════════════════
+async function fetchAnalytics(){
+  if(!backendUp) return;
+  try {
+    const r=await fetch(BACKEND+'/api/analytics',{signal:AbortSignal.timeout(5000)});
+    if(!r.ok) return;
+    const d=await r.json();
+    document.getElementById('a-sess').textContent=d.totalSessions??'—';
+    document.getElementById('a-sess-s').textContent=d.totalSessions>0?`${d.totalSessions} total`:'No sessions yet';
+    document.getElementById('a-rt').textContent=d.avgResponseTimeMs?(d.avgResponseTimeMs/1000).toFixed(1)+'s':'—';
+    document.getElementById('a-succ').textContent=d.successRate!=null?d.successRate+'%':'—';
+    document.getElementById('a-esc').textContent=d.escalations??'—';
+    document.getElementById('a-esc-big').innerHTML=(d.escalations||0)+' <span style="font-size:14px;color:#aaa;font-weight:400">total</span>';
+    if(d.langSplit){
+      const en=d.langSplit.en||62, te=d.langSplit.te||38;
+      document.getElementById('b-en').style.width=en+'%';
+      document.getElementById('b-te').style.width=te+'%';
+      document.getElementById('bv-en').textContent=en+'%';
+      document.getElementById('bv-te').textContent=te+'%';
+      document.getElementById('a-en').textContent=en+'%';
+      document.getElementById('a-te').textContent=te+'%';
+    }
+    // Fetch error logs
+    const er=await fetch(BACKEND+'/api/analytics/errors',{signal:AbortSignal.timeout(5000)});
+    if(er.ok){
+      const logs=await er.json();
+      const logEl=document.getElementById('a-logs');
+      if(logs.length){
+        logEl.innerHTML=logs.slice(0,8).map(e=>`
+          <div class="log-item">
+            <span class="log-badge ${e.type==='chat'?'ok':e.type==='stt'?'warn':'err'}">${e.type.toUpperCase()}</span>
+            ${esc(e.message.slice(0,55))} · ${new Date(e.timestamp).toLocaleTimeString()}
+          </div>`).join('');
+      } else {
+        logEl.innerHTML='<div class="log-item"><span class="log-badge ok">OK</span>No errors logged</div>';
+      }
+    }
+  } catch(e){ console.warn('Analytics fetch failed',e); }
+}
+
+// ═══════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════
+function buildWaveform(id,n){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.innerHTML=Array.from({length:n},(_,i)=>`<div class="wbar" style="animation-delay:${i*.07}s"></div>`).join('');
+}
+function pad(n){return String(n).padStart(2,'0');}
+function now(){return new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});}
+function esc(t){return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+let ntimer=null;
+function notify(msg){
+  document.querySelector('.notif')?.remove();
+  clearTimeout(ntimer);
+  const el=document.createElement('div');
+  el.className='notif';
+  el.innerHTML=`<i class="ti ti-circle-check" style="color:var(--mint);font-size:16px"></i> ${msg}`;
+  document.body.appendChild(el);
+  ntimer=setTimeout(()=>el.remove(),3200);
+}
+</script>
+</body>
+</html>
