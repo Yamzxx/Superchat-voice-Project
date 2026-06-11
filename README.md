@@ -1,115 +1,298 @@
 # SuperChat AI — Intelligent Voice Call System
 
-A fully integrated AI voice-call assistant: **speak → transcribe → AI response → hear it back**.
+An AI-powered voice calling assistant that enables natural conversations through speech.
+
+**Speak → Transcribe → Generate Response → Hear Reply**
 
 ---
 
-## Stack
+## Tech Stack
 
-| Layer | Tech |
-|---|---|
-| Backend | Python 3.11 + Flask |
-| AI | Ollama (`llama3.2`) |
-| STT | Browser Web Speech API |
-| TTS | `edge_tts` (Microsoft Neural voices) |
-| Frontend | HTML · CSS · Vanilla JS |
+| Layer          | Technology                         |
+| -------------- | ---------------------------------- |
+| Backend        | Python 3.11 + Flask                |
+| AI Engine      | Ollama (llama3.2)                  |
+| Speech-to-Text | Browser Web Speech API             |
+| Text-to-Speech | edge_tts (Microsoft Neural Voices) |
+| Frontend       | HTML, CSS, Vanilla JavaScript      |
 
 ---
 
-## Quick Start
+# Prerequisites
 
-### 1. Install Ollama + pull model
+Before running the project, ensure the following are installed:
+
+* Python 3.11+
+* Ollama
+* Google Chrome or Microsoft Edge
+* Microphone access enabled
+
+Verify installation:
 
 ```bash
-# macOS
-brew install ollama
-ollama serve &          # starts on http://localhost:11434
+python --version
+ollama --version
+```
+
+---
+
+# Step 1 — Start Ollama
+
+Start the Ollama server:
+
+```bash
+ollama serve
+```
+
+Open a second terminal and download the model:
+
+```bash
 ollama pull llama3.2
 ```
 
-For Linux: https://ollama.com/download
+Verify:
 
-### 2. Clone & install Python deps
+```bash
+ollama run llama3.2
+```
+
+If the model responds, Ollama is working correctly.
+
+---
+
+# Step 2 — Clone the Repository
 
 ```bash
 git clone <repo-url>
 cd superchat-voice-call-system
+```
+
+---
+
+# Step 3 — Create Virtual Environment
+
+### Windows
+
+```bash
 python -m venv .venv
-source .venv/bin/activate      # Windows: .venv\Scripts\activate
+.venv\Scripts\activate
+```
+
+### macOS/Linux
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+---
+
+# Step 4 — Install Dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-### 3. Run
+Verify Flask installation:
+
+```bash
+pip list
+```
+
+---
+
+# Step 5 — Run the Backend
+
+From the project root:
 
 ```bash
 python app.py
 ```
 
-Open **http://localhost:5000** in **Chrome** or **Edge** (required for Web Speech API).
+Expected output:
 
----
-
-## Configuration
-
-Edit `config.py` to change:
-
-| Variable | Default | Description |
-|---|---|---|
-| `OLLAMA_MODEL` | `llama3.2` | Any Ollama model |
-| `TTS_VOICE` | `en-US-AriaNeural` | Any edge_tts voice |
-| `FLASK_PORT` | `5000` | Server port |
-| `MAX_HISTORY` | `20` | Conversation memory turns |
-
-List available TTS voices: `python -c "import asyncio, edge_tts; asyncio.run(edge_tts.list_voices())" | grep Name`
-
----
-
-## How It Works
-
-```
-[Browser mic] ──Web Speech API──► text
-     text ──POST /process-voice──► Flask
-                                    ├─ speech_to_text.py  (validate)
-                                    ├─ response_engine.py (Ollama)
-                                    └─ text_to_speech.py  (edge_tts)
-                               ◄── { ai_text, audio_b64, transcript }
-[Browser] decodes base64 MP3 and plays it
+```text
+* Running on http://127.0.0.1:5000
 ```
 
 ---
 
-## API Reference
+# Step 6 — Open the Application
 
-| Route | Method | Body | Response |
-|---|---|---|---|
-| `/` | GET | — | index.html |
-| `/start-call` | POST | `{ session_id }` | `{ status, state }` |
-| `/process-voice` | POST | `{ session_id, text }` | `{ ai_text, audio_b64, transcript, state }` |
-| `/end-call` | POST | `{ session_id }` | `{ status, duration, transcript }` |
-| `/call-status` | GET | `?session_id=` | `{ state, duration, muted }` |
-| `/toggle-mute` | POST | `{ session_id }` | `{ muted }` |
+Open your browser and navigate to:
 
----
+```text
+http://localhost:5000
+```
 
-## Keyboard Shortcuts
-
-| Key | Action |
-|---|---|
-| `Enter` | Start call |
-| `Escape` | End call |
-| `M` | Toggle mute |
+Use Google Chrome or Microsoft Edge for microphone support.
 
 ---
 
-## Troubleshooting
+# Configuration
 
-| Problem | Fix |
-|---|---|
-| "Cannot reach Ollama" | Run `ollama serve` and ensure model is pulled |
-| No mic / STT not working | Use Chrome/Edge; allow mic in browser settings |
-| Blank audio | Check internet (edge_tts needs it); confirm `edge-tts` installed |
-| Model too slow | Use `ollama pull llama3.2:1b` for faster responses |
-| Port in use | Change `FLASK_PORT` in `config.py` |
+Edit `config.py` to customize:
+
+| Variable     | Default          | Description         |
+| ------------ | ---------------- | ------------------- |
+| OLLAMA_MODEL | llama3.2         | AI model            |
+| TTS_VOICE    | en-US-AriaNeural | Voice output        |
+| FLASK_PORT   | 5000             | Server port         |
+| MAX_HISTORY  | 20               | Conversation memory |
 
 ---
 
+# API Endpoints
+
+## Start Call
+
+```http
+POST /start-call
+```
+
+Request:
+
+```json
+{
+  "session_id": "abc123"
+}
+```
+
+---
+
+## Process Voice
+
+```http
+POST /process-voice
+```
+
+Request:
+
+```json
+{
+  "session_id": "abc123",
+  "text": "Hello"
+}
+```
+
+Response:
+
+```json
+{
+  "ai_text": "...",
+  "audio_b64": "...",
+  "transcript": "...",
+  "state": "active"
+}
+```
+
+---
+
+## End Call
+
+```http
+POST /end-call
+```
+
+---
+
+## Call Status
+
+```http
+GET /call-status?session_id=abc123
+```
+
+---
+
+## Toggle Mute
+
+```http
+POST /toggle-mute
+```
+
+---
+
+# Keyboard Shortcuts
+
+| Key    | Action      |
+| ------ | ----------- |
+| Enter  | Start Call  |
+| Escape | End Call    |
+| M      | Toggle Mute |
+
+---
+
+# Troubleshooting
+
+### Ollama Connection Error
+
+```text
+Cannot reach Ollama
+```
+
+Fix:
+
+```bash
+ollama serve
+ollama pull llama3.2
+```
+
+---
+
+### Microphone Not Working
+
+* Use Chrome or Edge
+* Allow microphone permissions
+* Refresh the page
+
+---
+
+### No Audio Response
+
+Verify:
+
+```bash
+pip show edge-tts
+```
+
+Install if missing:
+
+```bash
+pip install edge-tts
+```
+
+---
+
+### Port Already In Use
+
+Change:
+
+```python
+FLASK_PORT = 5000
+```
+
+inside `config.py`.
+
+---
+
+# Project Flow
+
+```text
+User Speech
+      │
+      ▼
+Web Speech API
+      │
+      ▼
+Flask Backend
+      │
+      ├── Speech Validation
+      ├── Ollama Response Generation
+      └── Edge TTS Voice Synthesis
+      │
+      ▼
+Audio Response
+      │
+      ▼
+Browser Playback
+```
