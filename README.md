@@ -1,298 +1,192 @@
-# SuperChat AI — Intelligent Voice Call System
+# Superchat Voice Assistant — Setup Guide
 
-An AI-powered voice calling assistant that enables natural conversations through speech.
+A voice-enabled AI chat assistant built with Node.js, TypeScript, and Groq AI.
 
-**Speak → Transcribe → Generate Response → Hear Reply**
+---
+
+## What You Need Before Starting
+
+- **Node.js** (v18 or higher) — [Download here](https://nodejs.org)
+- **A Groq API key** — [Get one free at console.groq.com](https://console.groq.com)
+- **Google Chrome or Microsoft Edge** — for microphone support
+- **A microphone** connected to your computer
+
+---
+
+## Step 1 — Get Your Groq API Key
+
+1. Go to [console.groq.com](https://console.groq.com)
+2. Sign up or log in
+3. Click **API Keys** in the left sidebar
+4. Click **Create API Key**
+5. Copy the key — it looks like: `gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+
+> **Important:** Keep this key secret. Never share it or commit it to GitHub.
+
+---
+
+## Step 2 — Download the Project
+
+```bash
+git clone <your-repo-url>
+cd Superchat-voice-Project
+```
+
+Or just download the ZIP from GitHub and extract it.
+
+---
+
+## Step 3 — Set Up the Backend
+
+Open a terminal and navigate to the backend folder:
+
+```bash
+cd backend
+```
+
+Install all dependencies:
+
+```bash
+npm install
+```
+
+---
+
+## Step 4 — Create Your `.env` File
+
+The `.env` file stores your secret API key. The project comes with a `.env.example` — copy it:
+
+**Windows:**
+```bash
+copy .env.example .env
+```
+
+**Mac/Linux:**
+```bash
+cp .env.example .env
+```
+
+Now open `.env` in Notepad (or any text editor):
+
+```bash
+notepad .env
+```
+
+Replace the placeholder with your actual Groq key:
+
+```
+GROQ_API_KEY=gsk_your_actual_key_here
+PORT=4000
+```
+
+Save and close the file.
+
+---
+
+## Step 5 — Start the Backend
+
+```bash
+npm run dev
+```
+
+You should see:
+```
+[INFO] Superchat backend running on http://localhost:4000
+```
+
+> If you see an error about a port being in use, open `.env` and change `PORT=4000` to `PORT=4001` (or any other number), then restart.
+
+---
+
+## Step 6 — Open the App
+
+Open **Google Chrome** or **Microsoft Edge** and go to:
+
+```
+http://localhost:4000
+```
+
+Allow microphone access when the browser asks.
+
+---
+
+## How to Use
+
+- **Type a message** in the chat box and press Enter, OR
+- **Click the microphone button** and speak — your speech is converted to text automatically
+- The AI will respond in text and voice
+
+---
+
+## Stopping the Server
+
+In the terminal where the server is running, press:
+
+```
+Ctrl + C
+```
+
+---
+
+## Starting Again Next Time
+
+Every time you want to use the app, just:
+
+1. Open a terminal
+2. Navigate to the backend folder: `cd Superchat-voice-Project\backend`
+3. Run: `npm run dev`
+4. Open Chrome and go to `http://localhost:4000`
+
+---
+
+## Troubleshooting
+
+### "GROQ_API_KEY not set" error
+- Make sure your `.env` file exists in the `backend` folder
+- Make sure the key starts with `gsk_` and is the full key (not just the beginning)
+- Make sure `import 'dotenv/config';` is the first line of `src/server.ts`
+
+### Microphone not working
+- Use Google Chrome or Microsoft Edge (not Firefox)
+- Click the lock icon in the address bar → allow microphone
+- Refresh the page
+
+### "Port already in use" error
+- Another program is using port 4000
+- Change `PORT=4000` to `PORT=4001` in your `.env` file
+
+### No AI response / blank reply
+- Check the terminal for error messages
+- Make sure your Groq API key is valid at [console.groq.com](https://console.groq.com)
+- Make sure you have internet connection (Groq is a cloud service)
+
+### Server shows health/analytics logs but no chat logs
+- This is normal — those are just the frontend checking if the server is alive
+- Try sending a message; you should then see `Groq request` and `Groq reply` in the logs
+
+---
+
+## Project Structure (for the curious)
+
+```
+backend/
+├── src/
+│   ├── server.ts          ← Main entry point, starts the server
+│   ├── routes/            ← API endpoints (chat, voice, analytics...)
+│   └── services/          ← Business logic (AI, TTS, STT, sessions...)
+├── .env                   ← Your secret keys (never share this!)
+├── .env.example           ← Template showing what keys are needed
+└── package.json           ← Project info and dependencies
+```
 
 ---
 
 ## Tech Stack
 
-| Layer          | Technology                         |
-| -------------- | ---------------------------------- |
-| Backend        | Python 3.11 + Flask                |
-| AI Engine      | Ollama (llama3.2)                  |
-| Speech-to-Text | Browser Web Speech API             |
-| Text-to-Speech | edge_tts (Microsoft Neural Voices) |
-| Frontend       | HTML, CSS, Vanilla JavaScript      |
-
----
-
-# Prerequisites
-
-Before running the project, ensure the following are installed:
-
-* Python 3.11+
-* Ollama
-* Google Chrome or Microsoft Edge
-* Microphone access enabled
-
-Verify installation:
-
-```bash
-python --version
-ollama --version
-```
-
----
-
-# Step 1 — Start Ollama
-
-Start the Ollama server:
-
-```bash
-ollama serve
-```
-
-Open a second terminal and download the model:
-
-```bash
-ollama pull llama3.2
-```
-
-Verify:
-
-```bash
-ollama run llama3.2
-```
-
-If the model responds, Ollama is working correctly.
-
----
-
-# Step 2 — Clone the Repository
-
-```bash
-git clone <repo-url>
-cd superchat-voice-call-system
-```
-
----
-
-# Step 3 — Create Virtual Environment
-
-### Windows
-
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-```
-
-### macOS/Linux
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-```
-
----
-
-# Step 4 — Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-Verify Flask installation:
-
-```bash
-pip list
-```
-
----
-
-# Step 5 — Run the Backend
-
-From the project root:
-
-```bash
-python app.py
-```
-
-Expected output:
-
-```text
-* Running on http://127.0.0.1:5000
-```
-
----
-
-# Step 6 — Open the Application
-
-Open your browser and navigate to:
-
-```text
-http://localhost:5000
-```
-
-Use Google Chrome or Microsoft Edge for microphone support.
-
----
-
-# Configuration
-
-Edit `config.py` to customize:
-
-| Variable     | Default          | Description         |
-| ------------ | ---------------- | ------------------- |
-| OLLAMA_MODEL | llama3.2         | AI model            |
-| TTS_VOICE    | en-US-AriaNeural | Voice output        |
-| FLASK_PORT   | 5000             | Server port         |
-| MAX_HISTORY  | 20               | Conversation memory |
-
----
-
-# API Endpoints
-
-## Start Call
-
-```http
-POST /start-call
-```
-
-Request:
-
-```json
-{
-  "session_id": "abc123"
-}
-```
-
----
-
-## Process Voice
-
-```http
-POST /process-voice
-```
-
-Request:
-
-```json
-{
-  "session_id": "abc123",
-  "text": "Hello"
-}
-```
-
-Response:
-
-```json
-{
-  "ai_text": "...",
-  "audio_b64": "...",
-  "transcript": "...",
-  "state": "active"
-}
-```
-
----
-
-## End Call
-
-```http
-POST /end-call
-```
-
----
-
-## Call Status
-
-```http
-GET /call-status?session_id=abc123
-```
-
----
-
-## Toggle Mute
-
-```http
-POST /toggle-mute
-```
-
----
-
-# Keyboard Shortcuts
-
-| Key    | Action      |
-| ------ | ----------- |
-| Enter  | Start Call  |
-| Escape | End Call    |
-| M      | Toggle Mute |
-
----
-
-# Troubleshooting
-
-### Ollama Connection Error
-
-```text
-Cannot reach Ollama
-```
-
-Fix:
-
-```bash
-ollama serve
-ollama pull llama3.2
-```
-
----
-
-### Microphone Not Working
-
-* Use Chrome or Edge
-* Allow microphone permissions
-* Refresh the page
-
----
-
-### No Audio Response
-
-Verify:
-
-```bash
-pip show edge-tts
-```
-
-Install if missing:
-
-```bash
-pip install edge-tts
-```
-
----
-
-### Port Already In Use
-
-Change:
-
-```python
-FLASK_PORT = 5000
-```
-
-inside `config.py`.
-
----
-
-# Project Flow
-
-```text
-User Speech
-      │
-      ▼
-Web Speech API
-      │
-      ▼
-Flask Backend
-      │
-      ├── Speech Validation
-      ├── Ollama Response Generation
-      └── Edge TTS Voice Synthesis
-      │
-      ▼
-Audio Response
-      │
-      ▼
-Browser Playback
-```
+| Part | Technology |
+|------|-----------|
+| Backend | Node.js + TypeScript + Express |
+| AI | Groq API (llama-3.3-70b) |
+| Speech to Text | Browser Web Speech API |
+| Text to Speech | Google Cloud TTS / ElevenLabs |
+| Frontend | HTML + CSS + Vanilla JavaScript |
