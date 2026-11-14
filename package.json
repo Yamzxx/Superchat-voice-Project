@@ -4,7 +4,7 @@
   "private": true,
   "description": "Superchat Voice Assistant - Bilingual Telugu & English AI Customer Support",
   "scripts": {
-    "build": "cd backend && npm install && npm run build",
+    "build": "tsc -p backend/tsconfig.json",
     "start": "cd backend && npm start",
     "dev": "cd backend && npm run dev",
     "dev:frontend": "npx serve frontend"
