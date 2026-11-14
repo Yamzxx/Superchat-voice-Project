@@ -1,6 +1,7 @@
 import { logger } from '../utils/logger';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import crypto from 'crypto';
 
 /**
@@ -10,10 +11,17 @@ import crypto from 'crypto';
  */
 class TTSService {
   private provider = process.env.TTS_PROVIDER || 'google'; // 'google' | 'elevenlabs' | 'openai'
-  private cacheDir = path.join(process.cwd(), 'tts-cache');
+  public cacheDir = process.env.VERCEL
+    ? path.join(os.tmpdir(), 'tts-cache')
+    : path.join(process.cwd(), 'tts-cache');
 
   constructor() {
-    if (!fs.existsSync(this.cacheDir)) fs.mkdirSync(this.cacheDir, { recursive: true });
+    try {
+      if (!fs.existsSync(this.cacheDir)) fs.mkdirSync(this.cacheDir, { recursive: true });
+    } catch {
+      this.cacheDir = path.join(os.tmpdir(), 'tts-cache');
+      if (!fs.existsSync(this.cacheDir)) fs.mkdirSync(this.cacheDir, { recursive: true });
+    }
   }
 
   async synthesize(text: string, lang: 'en' | 'te'): Promise<string> {
@@ -55,7 +63,7 @@ class TTSService {
     );
 
     if (!res.ok) throw new Error(`Google TTS error: ${res.status}`);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     fs.writeFileSync(filePath, Buffer.from(data.audioContent, 'base64'));
     logger.info(`TTS generated: ${hash}.mp3`);
     return `/tts-cache/${hash}.mp3`;

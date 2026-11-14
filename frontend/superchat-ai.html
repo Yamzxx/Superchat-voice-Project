@@ -262,11 +262,7 @@ input,textarea{font-family:'DM Sans',sans-serif;}
           <button class="lang-btn" onclick="setLang('en',this)">EN</button>
           <button class="lang-btn" onclick="setLang('te',this)">తె</button>
         </div>
-        <div class="key-section">
-          <div class="key-label">API Key <span class="key-saved" id="key-saved" style="display:none">✓ Saved</span></div>
-          <input class="key-input" id="key-input" type="password" placeholder="sk-ant-... (for direct AI)"/>
-          <button class="key-save-btn" onclick="saveKey()">Save Key</button>
-        </div>
+
         <div class="user-row">
           <div class="avatar">U</div>
           <span class="user-name">Guest User</span>
@@ -441,7 +437,11 @@ input,textarea{font-family:'DM Sans',sans-serif;}
 // ═══════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════
-const BACKEND = 'http://localhost:4000';
+const BACKEND = window.SUPERCHAT_BACKEND_URL || (
+  window.location.origin.includes('localhost') || window.location.protocol === 'file:' 
+    ? 'http://localhost:4000' 
+    : ''
+);
 
 // ═══════════════════════════════════════════
 //  STATE
@@ -878,12 +878,65 @@ function answerCall(){
   addCallEntry('ai',greet);
   speakText(greet,lang==='te'?'te':'en');
   notify('Call connected!');
+  // Start listening for user after AI finishes greeting (~2.5s)
+  setTimeout(()=>{ if(callState==='connected') startCallListening(); }, 2500);
+}
+
+let callRecognition=null;
+function startCallListening(){
+  if(muted||onHold||callState!=='connected') return;
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ document.getElementById('c-label').textContent='⚠ Mic not supported in this browser'; return; }
+  callRecognition=new SR();
+  callRecognition.lang=lang==='te'?'te-IN':'en-IN';
+  callRecognition.continuous=false;
+  callRecognition.interimResults=true;
+  callRecognition.onstart=()=>{
+    document.getElementById('c-label').textContent='🎤 Listening...';
+    document.getElementById('mute-btn').className='cbtn lit';
+  };
+  callRecognition.onresult=(e)=>{
+    const t=Array.from(e.results).map(r=>r[0].transcript).join('');
+    document.getElementById('c-label').textContent='🎤 '+t.slice(0,40)+(t.length>40?'...':'');
+  };
+  callRecognition.onend=async()=>{
+    const heard=document.getElementById('c-label').textContent.replace('🎤 ','').trim();
+    document.getElementById('mute-btn').className='cbtn gray';
+    if(!heard||heard==='🎤 Listening...'||heard==='● Live'){ 
+      if(callState==='connected') document.getElementById('c-label').textContent='● Live';
+      return; 
+    }
+    // Process user's spoken message
+    addCallEntry('user', heard);
+    transcript.push({role:'user',text:heard});
+    document.getElementById('c-label').textContent='⏳ Thinking...';
+    try {
+      const l=resolveLang(heard);
+      const reply=await getReply(heard,l);
+      addCallEntry('ai',reply);
+      transcript.push({role:'ai',text:reply});
+      speakText(reply,l);
+      document.getElementById('c-label').textContent='● Live';
+      // Listen again after AI reply (~2s per 10 chars, min 2s)
+      const delay=Math.max(2000, reply.length*80);
+      setTimeout(()=>{ if(callState==='connected'&&!muted&&!onHold) startCallListening(); }, delay);
+    } catch(e){
+      document.getElementById('c-label').textContent='● Live';
+      if(callState==='connected') setTimeout(()=>startCallListening(),1500);
+    }
+  };
+  callRecognition.onerror=(e)=>{
+    document.getElementById('c-label').textContent='● Live';
+    if(e.error!=='aborted'&&callState==='connected') setTimeout(()=>startCallListening(),1500);
+  };
+  callRecognition.start();
 }
 
 function declineCall(){ callState='idle'; notify('Call declined'); }
 
 function endCall(){
   clearInterval(callTimer); callState='idle';
+  callRecognition?.abort(); callRecognition=null;
   window.speechSynthesis?.cancel();
   const dur=pad(Math.floor(callSec/60))+':'+pad(callSec%60);
   // Update summary page
@@ -921,6 +974,8 @@ function callMute(){
   const btn=document.getElementById('mute-btn');
   if(btn){btn.className=muted?'cbtn lit':'cbtn gray';btn.innerHTML=`<i class="ti ti-microphone${muted?'-off':''}"></i>`;}
   document.getElementById('c-label').textContent=muted?'🔇 Muted':onHold?'⏸ On Hold':'● Live';
+  if(muted){ callRecognition?.abort(); callRecognition=null; }
+  else if(callState==='connected') setTimeout(()=>startCallListening(),500);
   notify(muted?'Muted':'Unmuted');
 }
 

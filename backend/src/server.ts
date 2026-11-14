@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -7,6 +8,8 @@ import summaryRoutes from './routes/summary.routes';
 import analyticsRoutes from './routes/analytics.routes';
 import callRoutes from './routes/call.routes';
 import { logger } from './utils/logger';
+
+import { ttsService } from './services/tts.service';
 
 dotenv.config();
 
@@ -24,17 +27,31 @@ app.use((req, _res, next) => {
   next();
 });
 
-// Routes
+// Routes mounted with /api prefix
 app.use('/api/chat', chatRoutes);
 app.use('/api/voice', voiceRoutes);
 app.use('/api/summary', summaryRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/call', callRoutes);
 
-app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+// Fallback mounts directly without /api (handles rewrites that strip the prefix)
+app.use('/chat', chatRoutes);
+app.use('/voice', voiceRoutes);
+app.use('/summary', summaryRoutes);
+app.use('/analytics', analyticsRoutes);
+app.use('/call', callRoutes);
 
-app.listen(PORT, () => {
-  logger.info(`Superchat backend running on http://localhost:${PORT}`);
-});
+// Audio cache static serving
+app.use('/tts-cache', express.static(ttsService.cacheDir));
+app.use('/api/tts-cache', express.static(ttsService.cacheDir));
+
+app.get('/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+app.get('/api/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    logger.info(`Superchat backend running on http://localhost:${PORT}`);
+  });
+}
 
 export default app;

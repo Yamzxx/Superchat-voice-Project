@@ -40,7 +40,7 @@ class STTService {
     });
 
     if (!res.ok) throw new Error(`Whisper STT error: ${res.status}`);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     logger.info(`STT transcript: ${data.text?.slice(0, 60)}...`);
     return data.text || '';
   }
@@ -63,7 +63,7 @@ class STTService {
     );
 
     if (!res.ok) throw new Error(`Google STT error: ${res.status}`);
-    const data = await res.json();
+    const data = (await res.json()) as any;
     return data.results?.[0]?.alternatives?.[0]?.transcript || '';
   }
 }
